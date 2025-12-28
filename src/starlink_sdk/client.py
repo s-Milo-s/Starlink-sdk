@@ -333,7 +333,7 @@ class AlertsAPI:
     
     def list(
         self,
-        status: Union[AlertStatus, str] = AlertStatus.OPEN,
+        status: Optional[Union[AlertStatus, str]] = None,
         severity: Optional[Union[AlertSeverity, str]] = None,
         terminal_id: Optional[str] = None,
         from_time: Optional[datetime] = None,
@@ -345,7 +345,7 @@ class AlertsAPI:
         List alerts with filtering options.
         
         Args:
-            status: Filter by alert status
+            status: Filter by alert status (optional)
             severity: Filter by severity
             terminal_id: Filter by terminal
             from_time: Filter by creation time (start)
@@ -356,11 +356,10 @@ class AlertsAPI:
         Returns:
             Alerts list response
         """
-        params = {
-            'status': status if isinstance(status, str) else status.value,
-            'limit': min(max(limit, 1), 500)
-        }
+        params = {'limit': min(max(limit, 1), 500)}
         
+        if status:
+            params['status'] = status if isinstance(status, str) else status.value
         if severity:
             params['severity'] = severity if isinstance(severity, str) else severity.value
         if terminal_id:

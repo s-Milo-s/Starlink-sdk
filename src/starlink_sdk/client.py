@@ -19,7 +19,7 @@ from .models import (
     MetricsResponse,
     TelemetryIngestRequest,
     TelemetryIngestResponse,
-    TerminalDetail,
+    TerminalSummary,
     TerminalListResponse,
     TerminalStatus,
 )
@@ -275,7 +275,7 @@ class TerminalsAPI:
         response = self.client._make_request('GET', '/v1/terminals', params=params)
         return TerminalListResponse(**response.json())
     
-    def get(self, terminal_id: str) -> TerminalDetail:
+    def get(self, terminal_id: str) -> TerminalSummary:
         """
         Get detailed information about a terminal.
         
@@ -283,10 +283,10 @@ class TerminalsAPI:
             terminal_id: Terminal identifier
             
         Returns:
-            Terminal detail response
+            Terminal summary response
         """
         response = self.client._make_request('GET', f'/v1/terminals/{terminal_id}')
-        return TerminalDetail(**response.json())
+        return TerminalSummary(**response.json())
     
     def get_metrics(
         self,

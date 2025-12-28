@@ -23,7 +23,7 @@ class TokenManager:
         self, 
         base_url: str, 
         api_secret: Optional[str] = None,
-        session: Optional[requests.Session] = None
+        timeout: float = 30.0
     ):
         """
         Initialize the token manager.
@@ -31,14 +31,14 @@ class TokenManager:
         Args:
             base_url: Base URL for the API
             api_secret: API secret for authentication (if None, reads from STARLINK_API_SECRET)
-            session: HTTP session to use (if None, creates a new one)
+            timeout: Request timeout in seconds
         """
         self.base_url = base_url.rstrip('/')
         self.api_secret = api_secret or os.getenv('STARLINK_API_SECRET')
         if not self.api_secret:
             raise AuthenticationError("API secret not provided. Set STARLINK_API_SECRET environment variable or pass api_secret parameter.")
         
-        self.session = session or requests.Session()
+        self.timeout = timeout
         self._token: Optional[str] = None
         self._token_expires_at: Optional[datetime] = None
         self._refresh_lock = threading.Lock()
@@ -77,10 +77,11 @@ class TokenManager:
         print(f"Refreshing token for base URL: {self.base_url}")
         """Refresh the authentication token."""
         try:
-            response = self.session.post(
+            response = requests.post(
                 f"{self.base_url}/v1/auth/token",
                 json={"api_secret": self.api_secret},
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json"},
+                timeout=self.timeout
             )
             response.raise_for_status()
             

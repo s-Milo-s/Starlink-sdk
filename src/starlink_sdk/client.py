@@ -34,6 +34,7 @@ class StarlinkClient:
     - Type-safe API methods
     - Environment-based URL configuration
     - Comprehensive error handling
+    - Stateless HTTP requests for backend-to-backend communication
     
     Usage:
         from starlink_sdk import StarlinkClient
@@ -64,7 +65,6 @@ class StarlinkClient:
         api_secret: Optional[str] = None,
         timeout: float = 30.0,
         max_retries: int = 3,
-        session: Optional[requests.Session] = None,
     ):
         """
         Initialize the Starlink client.
@@ -75,7 +75,6 @@ class StarlinkClient:
             api_secret: API secret (defaults to STARLINK_API_SECRET env var)
             timeout: Request timeout in seconds
             max_retries: Maximum number of retries for failed requests
-            session: Custom HTTP session (optional)
         """
         # Determine environment
         env = (
@@ -93,21 +92,14 @@ class StarlinkClient:
         
         self.environment = env
         self.base_url = self.ENVIRONMENT_URLS[env].rstrip('/')
+        self.timeout = timeout
         print(f"Using Starlink API base URL: {self.base_url}")
-        # Create HTTP session if not provided
-        if session is None:
-            self.session = requests.Session()
-            self.session.timeout = timeout
-            self._owns_session = True
-        else:
-            self.session = session
-            self._owns_session = False
         
         # Initialize token manager
         self.token_manager = TokenManager(
             base_url=self.base_url,
             api_secret=api_secret,
-            session=self.session
+            timeout=timeout
         )
         
         self.max_retries = max_retries
@@ -156,12 +148,13 @@ class StarlinkClient:
         
         for attempt in range(self.max_retries + 1):
             try:
-                response = self.session.request(
+                response = requests.request(
                     method=method,
                     url=url,
                     params=params,
                     json=json,
-                    headers=request_headers
+                    headers=request_headers,
+                    timeout=self.timeout
                 )
                 
                 # Check for success

@@ -14,6 +14,8 @@ from .models import (
     AlertSeverity,
     AlertStatus,
     AlertsListResponse,
+    AlertUpdateRequest,
+    AlertUpdateResponse,
     FleetHealthResponse,
     Interval,
     MetricsResponse,
@@ -371,6 +373,35 @@ class AlertsAPI:
         
         response = self.client._make_request('GET', '/v1/alerts', params=params)
         return AlertsListResponse(**response.json())
+    
+    def update(
+        self,
+        alert_id: str,
+        update_request: AlertUpdateRequest,
+        idempotency_key: Optional[str] = None
+    ) -> AlertUpdateResponse:
+        """
+        Update an alert's status.
+        
+        Args:
+            alert_id: Alert identifier
+            update_request: Alert update request containing new status
+            idempotency_key: Optional idempotency key for request deduplication
+            
+        Returns:
+            Alert update response
+        """
+        headers = {}
+        if idempotency_key:
+            headers['Idempotency-Key'] = idempotency_key
+        
+        response = self.client._make_request(
+            'PATCH', 
+            f'/v1/alerts/{alert_id}',
+            json=update_request.model_dump(mode='json'),
+            headers=headers if headers else None
+        )
+        return AlertUpdateResponse(**response.json())
 
 
 class TelemetryAPI:

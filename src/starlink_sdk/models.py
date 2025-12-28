@@ -171,3 +171,20 @@ class ValidationError(BaseModel):
 class HTTPValidationError(BaseModel):
     """HTTP validation error response."""
     detail: List[ValidationError]
+
+
+class AlertUpdateRequest(BaseModel):
+    """Request model for updating alert status."""
+    status: AlertStatus
+
+
+class AlertUpdateResponse(BaseModel):
+    """Response model for alert update."""
+    alert_id: str
+    terminal_id: str
+    severity: AlertSeverity
+    type: str
+    message: str
+    created_at: datetime
+    status: AlertStatus
+    updated_at: datetime

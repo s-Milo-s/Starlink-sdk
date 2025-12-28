@@ -93,7 +93,7 @@ class StarlinkClient:
         
         self.environment = env
         self.base_url = self.ENVIRONMENT_URLS[env].rstrip('/')
-        
+        print(f"Using Starlink API base URL: {self.base_url}")
         # Create HTTP session if not provided
         if session is None:
             self.session = requests.Session()

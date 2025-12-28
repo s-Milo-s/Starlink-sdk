@@ -44,6 +44,7 @@ class TokenManager:
         self._refresh_lock = threading.Lock()
     
     def get_token(self) -> str:
+        print(f"Getting token for base URL: {self.base_url}")
         """
         Get a valid access token, refreshing if necessary.
         
@@ -73,6 +74,7 @@ class TokenManager:
         return datetime.now(timezone.utc) < (self._token_expires_at - timedelta(seconds=30))
     
     def _refresh_token(self) -> None:
+        print(f"Refreshing token for base URL: {self.base_url}")
         """Refresh the authentication token."""
         try:
             response = self.session.post(

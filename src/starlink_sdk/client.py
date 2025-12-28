@@ -143,6 +143,7 @@ class StarlinkClient:
             StarlinkAPIError: For API-specific errors
             StarlinkClientError: For client-side errors
         """
+        print(f"Making {method} request to endpoint: {endpoint}")
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         
         # Get authentication header

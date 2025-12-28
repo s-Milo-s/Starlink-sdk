@@ -3,7 +3,7 @@ Simple synchronous example showing OpenAI-style usage of the Starlink SDK.
 
 Before running:
 export STARLINK_API_SECRET="your-api-secret"
-export STARLINK_BASE_URL="https://your-api-endpoint.com"  # optional
+export STARLINK_ENVIRONMENT="production"  # or staging, development, demo, local
 """
 
 from datetime import datetime, timedelta
@@ -13,11 +13,17 @@ from starlink_sdk import StarlinkClient
 def main():
     """Simple synchronous main function - no async/await needed!"""
     
-    # Create client - just like OpenAI
-    client = StarlinkClient()
+    # Create client with environment - much cleaner!
+    client = StarlinkClient(environment="production")  # or "staging", "demo", etc.
+    
+    # Or just use default (production)
+    # client = StarlinkClient()
+    
+    print(f"🌍 Using environment: {client.environment}")
+    print(f"📍 API URL: {client.base_url}")
     
     # Check API health
-    print("🏥 Checking API health...")
+    print("\n🏥 Checking API health...")
     health_status = client.health_check()
     print(f"API Status: {health_status}")
     
@@ -79,8 +85,24 @@ def main():
     else:
         print("  ✅ No critical alerts!")
     
-    print(f"\n✨ All done! No async/await required.")
+    print(f"\n✨ All done! Using {client.environment} environment.")
+
+
+def demo_different_environments():
+    """Show how to use different environments."""
+    print("🌍 Environment Examples:")
+    
+    environments = ["production", "staging", "development", "demo", "local"]
+    
+    for env in environments:
+        try:
+            client = StarlinkClient(environment=env)
+            print(f"  {env}: {client.base_url}")
+        except Exception as e:
+            print(f"  {env}: Error - {e}")
 
 
 if __name__ == "__main__":
     main()
+    print("\n" + "="*50)
+    demo_different_environments()

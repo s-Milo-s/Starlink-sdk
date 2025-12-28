@@ -32,20 +32,35 @@ class StarlinkClient:
     Features:
     - Automatic token management and rotation
     - Type-safe API methods
-    - Configurable base URL and authentication
+    - Environment-based URL configuration
     - Comprehensive error handling
     
     Usage:
         from starlink_sdk import StarlinkClient
         
-        client = StarlinkClient()
+        # Use environment name
+        client = StarlinkClient(environment="production")
+        # or
+        client = StarlinkClient(environment="staging")
+        # or
+        client = StarlinkClient()  # defaults to production
+        
         health = client.fleet.get_health(from_time=..., to_time=...)
         terminals = client.terminals.list()
     """
     
+    # Environment URL mappings
+    ENVIRONMENT_URLS = {
+        'production': 'https://starlink-enterprise-api.spacex.com',
+        'staging': 'https://staging-starlink-enterprise-api.spacex.com',
+        'development': 'https://dev-starlink-enterprise-api.spacex.com',
+        'demo': 'https://demo-starlink-enterprise-api.spacex.com',
+        'local': 'http://localhost:8000',
+    }
+    
     def __init__(
         self,
-        base_url: Optional[str] = None,
+        environment: Optional[str] = None,
         api_secret: Optional[str] = None,
         timeout: float = 30.0,
         max_retries: int = 3,
@@ -55,17 +70,29 @@ class StarlinkClient:
         Initialize the Starlink client.
         
         Args:
-            base_url: API base URL (defaults to STARLINK_BASE_URL env var or demo URL)
+            environment: Environment name (production, staging, development, demo, local)
+                        Defaults to STARLINK_ENVIRONMENT env var or 'production'
             api_secret: API secret (defaults to STARLINK_API_SECRET env var)
             timeout: Request timeout in seconds
             max_retries: Maximum number of retries for failed requests
             session: Custom HTTP session (optional)
         """
-        self.base_url = (
-            base_url 
-            or os.getenv('STARLINK_BASE_URL') 
-            or 'https://starlink-enterprise-api.spacex.com'
-        ).rstrip('/')
+        # Determine environment
+        env = (
+            environment 
+            or os.getenv('STARLINK_ENVIRONMENT') 
+            or 'production'
+        ).lower()
+        
+        # Get base URL from environment mapping
+        if env not in self.ENVIRONMENT_URLS:
+            raise ValueError(
+                f"Invalid environment '{env}'. "
+                f"Must be one of: {', '.join(self.ENVIRONMENT_URLS.keys())}"
+            )
+        
+        self.environment = env
+        self.base_url = self.ENVIRONMENT_URLS[env].rstrip('/')
         
         # Create HTTP session if not provided
         if session is None:
@@ -386,7 +413,7 @@ class TelemetryAPI:
 
 # Convenience function for creating a client
 def create_client(
-    base_url: Optional[str] = None,
+    environment: Optional[str] = None,
     api_secret: Optional[str] = None,
     **kwargs
 ) -> StarlinkClient:
@@ -394,11 +421,11 @@ def create_client(
     Create and return a configured Starlink client.
     
     Args:
-        base_url: API base URL
+        environment: Environment name (production, staging, development, demo, local)
         api_secret: API secret
         **kwargs: Additional client options
         
     Returns:
         Configured client instance
     """
-    return StarlinkClient(base_url=base_url, api_secret=api_secret, **kwargs)
+    return StarlinkClient(environment=environment, api_secret=api_secret, **kwargs)

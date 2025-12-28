@@ -38,8 +38,8 @@ pip install starlink-sdk[dev]
 from datetime import datetime, timedelta
 from starlink_sdk import StarlinkClient
 
-# Initialize client - just like OpenAI!
-client = StarlinkClient()
+# Initialize client with environment - much cleaner!
+client = StarlinkClient(environment="production")
 
 # Get fleet health overview
 health = client.fleet.get_health(
@@ -68,16 +68,34 @@ Set these environment variables:
 
 ```bash
 export STARLINK_API_SECRET="your-api-secret-here"
-export STARLINK_BASE_URL="https://starlink-enterprise-api.spacex.com"  # optional
+export STARLINK_ENVIRONMENT="production"  # or staging, development, demo, local
 ```
 
 Or pass them directly:
 
 ```python
-client = StarlinkClient(
-    base_url="https://custom-api.example.com",
-    api_secret="your-secret"
-)
+# Use specific environment
+client = StarlinkClient(environment="staging")
+
+# Available environments:
+# - production (default)
+# - staging  
+# - development
+# - demo
+# - local
+```
+
+### Environment URLs
+
+The SDK automatically maps environments to URLs:
+
+| Environment | URL |
+|-------------|-----|
+| `production` | `https://starlink-enterprise-api.spacex.com` |
+| `staging` | `https://staging-starlink-enterprise-api.spacex.com` |
+| `development` | `https://dev-starlink-enterprise-api.spacex.com` |
+| `demo` | `https://demo-starlink-enterprise-api.spacex.com` |
+| `local` | `http://localhost:8000` |
 ```
 
 ## API Reference

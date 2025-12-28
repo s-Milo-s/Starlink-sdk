@@ -378,7 +378,7 @@ class AlertsAPI:
     def update(
         self,
         alert_id: str,
-        update_request: str,
+        status: str,
         idempotency_key: Optional[str] = None
     ) -> AlertUpdateResponse:
         """
@@ -386,35 +386,20 @@ class AlertsAPI:
         
         Args:
             alert_id: Alert identifier
-            update_request: JSON string containing update data (e.g., '{"status": "acknowledged"}')
+            status: New status for the alert (e.g., "acknowledged", "resolved", "open")
             idempotency_key: Optional idempotency key for request deduplication
             
         Returns:
             Alert update response
             
         Example:
-            response = client.alerts.update(
-                "alert_123", 
-                '{"status": "acknowledged"}',
-                idempotency_key="unique_key_456"
-            )
+            response = client.alerts.update("alert_123", "acknowledged")
         """
+        # Create the AlertUpdateRequest object internally
         try:
-            # Clean and parse JSON string to dictionary
-            cleaned_json = update_request.strip() if update_request else ""
-            
-            if not cleaned_json:
-                raise StarlinkClientError("update_request cannot be empty")
-            
-            update_data = json.loads(cleaned_json)
-            
-            # Validate the data by creating AlertUpdateRequest instance
-            validated_request = AlertUpdateRequest(**update_data)
-            
-        except json.JSONDecodeError as e:
-            raise StarlinkClientError(f"Invalid JSON in update_request: {e}. Received: {repr(update_request)}")
+            update_request = AlertUpdateRequest(status=status)
         except Exception as e:
-            raise StarlinkClientError(f"Invalid update_request data: {e}. Received: {repr(update_request)}")
+            raise StarlinkClientError(f"Invalid status '{status}': {e}")
         
         headers = {}
         if idempotency_key:
@@ -423,7 +408,7 @@ class AlertsAPI:
         response = self.client._make_request(
             'PATCH', 
             f'/v1/alerts/{alert_id}',
-            json=update_data,
+            json=update_request.model_dump(mode='json'),
             headers=headers if headers else None
         )
         return AlertUpdateResponse(**response.json())

@@ -400,16 +400,21 @@ class AlertsAPI:
             )
         """
         try:
-            # Parse JSON string to dictionary
-            update_data = json.loads(update_request)
+            # Clean and parse JSON string to dictionary
+            cleaned_json = update_request.strip() if update_request else ""
+            
+            if not cleaned_json:
+                raise StarlinkClientError("update_request cannot be empty")
+            
+            update_data = json.loads(cleaned_json)
             
             # Validate the data by creating AlertUpdateRequest instance
             validated_request = AlertUpdateRequest(**update_data)
             
         except json.JSONDecodeError as e:
-            raise StarlinkClientError(f"Invalid JSON in update_request: {e}")
+            raise StarlinkClientError(f"Invalid JSON in update_request: {e}. Received: {repr(update_request)}")
         except Exception as e:
-            raise StarlinkClientError(f"Invalid update_request data: {e}")
+            raise StarlinkClientError(f"Invalid update_request data: {e}. Received: {repr(update_request)}")
         
         headers = {}
         if idempotency_key:

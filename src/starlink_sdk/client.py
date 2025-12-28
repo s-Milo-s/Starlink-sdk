@@ -53,8 +53,8 @@ class StarlinkClient:
     ENVIRONMENT_URLS = {
         'production': 'https://starlink-enterprise-api.spacex.com',
         'staging': 'https://staging-starlink-enterprise-api.spacex.com',
-        'development': 'https://dev-starlink-enterprise-api.spacex.com',
-        'demo': 'https://demo-starlink-enterprise-api.spacex.com',
+        'development': 'http://localhost:8000',
+        'demo': 'http://localhost:8000',
         'local': 'http://localhost:8000',
     }
     

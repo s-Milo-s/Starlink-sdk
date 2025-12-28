@@ -1,5 +1,6 @@
 """Main client for the Starlink Enterprise Dashboard API."""
 
+import json
 import os
 from datetime import datetime
 from typing import List, Optional, Union
@@ -377,7 +378,7 @@ class AlertsAPI:
     def update(
         self,
         alert_id: str,
-        update_request: AlertUpdateRequest,
+        update_request: str,
         idempotency_key: Optional[str] = None
     ) -> AlertUpdateResponse:
         """
@@ -385,12 +386,31 @@ class AlertsAPI:
         
         Args:
             alert_id: Alert identifier
-            update_request: Alert update request containing new status
+            update_request: JSON string containing update data (e.g., '{"status": "acknowledged"}')
             idempotency_key: Optional idempotency key for request deduplication
             
         Returns:
             Alert update response
+            
+        Example:
+            response = client.alerts.update(
+                "alert_123", 
+                '{"status": "acknowledged"}',
+                idempotency_key="unique_key_456"
+            )
         """
+        try:
+            # Parse JSON string to dictionary
+            update_data = json.loads(update_request)
+            
+            # Validate the data by creating AlertUpdateRequest instance
+            validated_request = AlertUpdateRequest(**update_data)
+            
+        except json.JSONDecodeError as e:
+            raise StarlinkClientError(f"Invalid JSON in update_request: {e}")
+        except Exception as e:
+            raise StarlinkClientError(f"Invalid update_request data: {e}")
+        
         headers = {}
         if idempotency_key:
             headers['Idempotency-Key'] = idempotency_key
@@ -398,7 +418,7 @@ class AlertsAPI:
         response = self.client._make_request(
             'PATCH', 
             f'/v1/alerts/{alert_id}',
-            json=update_request.model_dump(mode='json'),
+            json=update_data,
             headers=headers if headers else None
         )
         return AlertUpdateResponse(**response.json())
